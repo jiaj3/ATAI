@@ -2,6 +2,7 @@ from speakeasypy import Speakeasy, Chatroom
 from typing import List
 import time
 from graph_utils import graph
+from ner_utils import closed_question
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -35,10 +36,15 @@ class Agent:
                     # Implement your agent here #
 
                     try:
-                        answer = [str(s).encode('utf-8') for s, in graph.query(message.message)]
-                        room.post_messages(f"Answer: '{answer}' ")
+                        substring = '<http://www.wikidata.org/entity/>'
+                        if substring in message.message:
+                            answer = [str(s).encode('utf-8') for s, in graph.query(message.message)]
+                        else:
+                            answer = closed_question(message.message)
+                        room.post_messages(answer)
                     except Exception as e:
-                        error_message = f"Error while executing the SPARQL query: {str(e)}"
+                        print(e)
+                        error_message = f"Sorry, there are some errors occur :/"
                         room.post_messages(error_message)
 
                     # Send a message to the corresponding chat room using the post_messages method of the room object.

@@ -96,10 +96,10 @@ def closed_question(question):
     if results:
         if "label" in results.bindings[0]:
             label = results.bindings[0]["label"]
-            return label
+            return f"The {relation} of {entity} is {label}."
         else:
             item = results.bindings[0]["item"]
-            return item
+            return f"The {relation} of {entity} is {item} "
     else:
         # Handle the case when no result is found
         return "No result found"
