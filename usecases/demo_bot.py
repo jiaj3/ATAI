@@ -41,7 +41,7 @@ class Agent:
                             answer = [str(s).encode('utf-8') for s, in graph.query(message.message)]
                         else:
                             answer = closed_question(message.message)
-                        room.post_messages(answer)
+                        room.post_messages(f"{answer}")
                     except Exception as e:
                         print(e)
                         error_message = f"Sorry, there are some errors occur :/"
