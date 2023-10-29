@@ -74,21 +74,32 @@ def closed_question(question):
     print(match_node, match_pred)
 
     sparql_query = """
-        SELECT ?label
+        SELECT ?item ?label
         WHERE {{
           {{
             <{0}> <{1}> ?item.
           }}
-          ?item rdfs:label ?label.
-          FILTER(LANG(?label) = "en").
+          UNION
+          {{
+            ?item <{1}> <{0}>.
+          }}
+          OPTIONAL {{
+            ?item rdfs:label ?label.
+            FILTER(LANG(?label) = "en").
+          }}
         }}
+        LIMIT 1
         """.format(match_node, match_pred)
     results = graph_utils.graph.query(sparql_query)
 
     # Check if there's at least one result
     if results:
-        label = results.bindings[0]["label"]
-        return label
+        if "label" in results.bindings[0]:
+            label = results.bindings[0]["label"]
+            return label
+        else:
+            item = results.bindings[0]["item"]
+            return item
     else:
         # Handle the case when no result is found
         return "No result found"
