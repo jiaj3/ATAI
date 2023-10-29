@@ -3,16 +3,14 @@ import re
 import editdistance
 from transformers import pipeline
 import graph_utils
+import spacy
 
 _ = locale.setlocale(locale.LC_ALL, '')
 
 ner_pipeline = pipeline('ner', model='dbmdz/bert-large-cased-finetuned-conll03-english')
 
-
-
-import spacy
-
 nlp = spacy.load("../en_core_web_sm/en_core_web_sm-3.7.0")
+
 
 def extract_relation(question):
     relations = []
@@ -37,6 +35,7 @@ def extract_relation(question):
                     relations.append(temp)
         return relations[1] if relations[1] else None
 
+
 def closed_question(question):
     # extract entity and relation from the question, entity using NER, and relation use
     entities_q = ner_pipeline(question, aggregation_strategy="simple")
@@ -49,7 +48,7 @@ def closed_question(question):
                 if temp_start == -1:
                     temp_start = e['start']
                 temp_end = e['end']
-        entity = question[temp_start : temp_end]
+        entity = question[temp_start: temp_end]
     else:
         for e in entities_q:
             entity += e['word'] + ' '
@@ -93,4 +92,3 @@ def closed_question(question):
     else:
         # Handle the case when no result is found
         return "No result found"
-
