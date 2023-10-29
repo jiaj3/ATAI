@@ -4,16 +4,14 @@ import editdistance
 from transformers import pipeline
 import graph_utils
 import embeddings_utils
+import spacy
 
 _ = locale.setlocale(locale.LC_ALL, '')
 
 ner_pipeline = pipeline('ner', model='dbmdz/bert-large-cased-finetuned-conll03-english')
 
-
-
-import spacy
-
 nlp = spacy.load("../en_core_web_sm/en_core_web_sm-3.7.0")
+
 
 def extract_relation(question):
     relations = []
@@ -38,6 +36,7 @@ def extract_relation(question):
                     relations.append(temp)
         return relations[1] if relations[1] else None
 
+
 def closed_question(question):
     # extract entity and relation from the question, entity using NER, and relation use
     entities_q = ner_pipeline(question, aggregation_strategy="simple")
@@ -50,12 +49,13 @@ def closed_question(question):
                 if temp_start == -1:
                     temp_start = e['start']
                 temp_end = e['end']
-        entity = question[temp_start : temp_end]
+        entity = question[temp_start: temp_end]
     else:
         for e in entities_q:
             entity += e['word'] + ' '
     entity = entity.strip()
     relation = extract_relation(question)
+    print(f"Entity: {entity}, Relation: {relation}")
 
     # find the entity and relation in the graph
     tmp = 9999
@@ -71,6 +71,7 @@ def closed_question(question):
         if editdistance.eval(value, relation) < tmp:
             tmp = editdistance.eval(value, relation)
             match_pred = key
+    print(match_node, match_pred)
 
     sparql_query = """
          SELECT ?item ?label
@@ -93,10 +94,11 @@ def closed_question(question):
 
     if results:
         if "label" in results.bindings[0]:
-            return embeddings_utils.check_embedding_question(match_node, match_pred, results.bindings[0]["label"])
+            label = embeddings_utils.check_embedding_question(match_node, match_pred, results.bindings[0]["label"])
+            return f"The {relation} of {entity} is {label}."
         else:
-            return embeddings_utils.check_embedding_question(match_node, match_pred, results.bindings[0]["item"])
+            item = embeddings_utils.check_embedding_question(match_node, match_pred, results.bindings[0]["item"])
+            return f"The {relation} of {entity} is {item} "
     else:
         # Handle the case when no result is found
         return embeddings_utils.check_embedding_question(match_node, match_pred, "No results")
-

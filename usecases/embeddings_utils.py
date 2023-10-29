@@ -28,6 +28,7 @@ with open('../ddis-graph-embeddings/relation_ids.del', 'r') as ifile:
 ent2lbl = {ent: str(lbl) for ent, lbl in graph_utils.graph.subject_objects(RDFS.label)}
 lbl2ent = {lbl: ent for ent, lbl in ent2lbl.items()}
 
+
 def check_embedding_question(node, predicate, result):
     entity_id = node.split('/')[-1]
     relation_id = predicate.split('/')[-1]
@@ -54,4 +55,3 @@ def check_embedding_question(node, predicate, result):
         return result
     else:
         return ent2lbl[id2ent[most_likely[0]]]
-
