@@ -5,6 +5,7 @@ from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 from fuzzywuzzy import process
 from collections import Counter
+from ner_utils import getrecommend
 
 
 ner_pipeline = pipeline('ner', model='dbmdz/bert-large-cased-finetuned-conll03-english')
@@ -26,17 +27,15 @@ def search(entity):
         best_match, score, idx = process.extractOne(entity, movie_df['title'])
         if score >= 80:
             movie_id = movie_df.loc[idx, 'movieId']
-            print(
-                f"Found close match: '{entity}' might be similar to '{best_match}' with a score of {score}. Movie ID: {movie_id}")
         else:
             movie_id=-1
 
     return movie_id
 
 
-def recommend_question(question):
+def helper(question):
+    results=[]
     entities_q = ner_pipeline(question, aggregation_strategy="simple")
-    entity = ""
     indices_all=[]
     for e in entities_q:
          entity = e['word']
@@ -44,14 +43,42 @@ def recommend_question(question):
          if id==-1:
              pass
          else:
-             distances, indices = knn.kneighbors(ml_csr[id], n_neighbors=40)
+             distances, indices = knn.kneighbors(ml_csr[id], n_neighbors=300)
              indices_all.append(indices)
 
     indices_all = np.hstack(indices_all).flatten()
     counter = Counter(indices_all)
-    for i, count in counter.most_common(3):
-        print(movie_dff['title'][i])
-        print(f"{i}: {count} times")
+    for i, count in counter.most_common(30):
+        results.append(movie_dff['title'][i])
+    return results
+
+
+def recommend_question(question):
+    entities_q = ner_pipeline(question, aggregation_strategy="simple")
+    genre_list=[]
+    for e in entities_q:
+        entity = e['word']
+        genre = getrecommend(entity)
+        genre_list.append(genre)
+        print(genre)
+
+    counter = Counter(genre_list)
+    finalgenre =[]
+    for i, count in counter.most_common(1):
+        finalgenre = i
+
+
+    candidates = helper(question)
+    winners = []
+    for c in candidates:
+        if len(winners)>2:
+            break
+        genre = getrecommend(c)
+        if finalgenre == genre:
+            winners.append(c)
+
+    return winners
+
 
 
 

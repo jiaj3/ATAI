@@ -55,3 +55,31 @@ def check_embedding_question(node, predicate, result):
         return result
     else:
         return ent2lbl[id2ent[most_likely[0]]]
+
+
+"""def recommend_embedding(genre, time):
+    relation_id = "ppppppppppppp".split('/')[-1]
+
+    try:
+        head = entity_emb[ent2id[WD[entity_id]]]
+        pred = relation_emb[rel2id[WDT[relation_id]]]
+    except KeyError as e:
+        return None
+
+    # add vectors according to TransE scoring function.
+    lhs = head + pred
+    # compute distance to *any* entity
+    dist = pairwise_distances(lhs.reshape(1, -1), entity_emb).reshape(-1)
+    # find most plausible entities
+    most_likely = dist.argsort()
+    # compute ranks of entities
+    ranks = dist.argsort().argsort()
+    in_top_six = False
+    for rank, idx in enumerate(most_likely[:6]):
+        if result.strip() == ent2lbl[id2ent[idx]].strip():
+            in_top_six = True
+    if in_top_six == True:
+        return result
+    else:
+        return ent2lbl[id2ent[most_likely[0]]]
+"""

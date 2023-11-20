@@ -105,3 +105,72 @@ def closed_question(question):
 
 
 
+
+
+
+
+def getrecommend(entity):
+    # extract entity and relation from the question, entity using NER, and relation use
+
+    relation1 = "genre"
+    relation2 = "publication date"
+
+    # find the entity and relation in the graph
+    tmp = 9999
+    match_node = ""
+    for key, value in graph_utils.nodes.items():
+        if editdistance.eval(value, entity) < tmp:
+            tmp = editdistance.eval(value, entity)
+            match_node = key
+
+    match_pred1 = "http://www.wikidata.org/prop/direct/P136"
+    match_pred2 = "http://www.wikidata.org/prop/direct/P577"
+
+    sparql_query = """
+             SELECT ?item ?label
+             WHERE {{
+               {{
+                 <{0}> <{1}> ?item.
+               }}
+               UNION
+               {{
+                 ?item <{1}> <{0}>.
+               }}
+               OPTIONAL {{
+                 ?item rdfs:label ?label.
+                 FILTER(LANG(?label) = "en").
+               }}
+             }}
+             LIMIT 1
+             """.format(match_node, match_pred1)
+    result1 = graph_utils.graph.query(sparql_query)
+    sparql_query = """
+                 SELECT ?item ?label
+                 WHERE {{
+                   {{
+                     <{0}> <{1}> ?item.
+                   }}
+                   UNION
+                   {{
+                     ?item <{1}> <{0}>.
+                   }}
+                   OPTIONAL {{
+                     ?item rdfs:label ?label.
+                     FILTER(LANG(?label) = "en").
+                   }}
+                 }}
+                 LIMIT 1
+                 """.format(match_node, match_pred2)
+    result2 = graph_utils.graph.query(sparql_query)
+
+    if result1:
+        label = embeddings_utils.check_embedding_question(match_node, match_pred1, result1.bindings[0]["label"])
+        """item = embeddings_utils.check_embedding_question(match_node, match_pred2, result2.bindings[0]["item"])"""
+        return label
+    else:
+        label = embeddings_utils.check_embedding_question(match_node, match_pred1, "No results")
+        """item = embeddings_utils.check_embedding_question(match_node, match_pred2, result2.bindings[0]["item"])"""
+        return label
+
+
+
