@@ -102,3 +102,6 @@ def closed_question(question):
     else:
         # Handle the case when no result is found
         return embeddings_utils.check_embedding_question(match_node, match_pred, "No results")
+
+
+

@@ -2,7 +2,7 @@ from speakeasypy import Speakeasy, Chatroom
 from typing import List
 import time
 from graph_utils import graph
-from ner_utils import closed_question
+from question_utils import question
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -40,7 +40,7 @@ class Agent:
                         if substring in message.message:
                             answer = [str(s).encode('utf-8') for s, in graph.query(message.message)]
                         else:
-                            answer = closed_question(message.message)
+                            answer = question(message.message)
                         room.post_messages(f"{answer}")
                     except Exception as e:
                         print(e)

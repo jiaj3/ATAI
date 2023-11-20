@@ -1,25 +1,10 @@
-from ner_utils import closed_question
+from question_utils import question
 
-question = "Who directed The Bridge on the River Kwai?"
-print(closed_question(question))
+q = "Recommend movies similar to Hamlet and Othello. "
+print(question(q))
 
+q = "Given that I like The Lion King, Pocahontas, and The Beauty and the Beast, can you recommend some movies? "
+print(question(q))
 
-question = "Who is the director of Star Wars: Episode VI - Return of the Jedi? "
-print(closed_question(question))
-
-
-question = "What is the genre of Good Neighbors?  "
-print(closed_question(question))
-
-question = "Who is the screenwriter of The Masked Gang: Cyprus?   "
-print(closed_question(question))
-
-question = "What is the MPAA film rating of Weathering with You? "
-print(closed_question(question))
-
-
-question = "When was \"The Godfather\" released?  "
-print(closed_question(question))
-
-question = "Who is the director of Good Will Hunting? "
-print(closed_question(question))
+q = "Recommend movies like Nightmare on Elm Street, Friday the 13th, and Halloween. "
+print(question(q))

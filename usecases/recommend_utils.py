@@ -1,0 +1,57 @@
+import numpy as np
+import pandas as pd
+from transformers import pipeline
+from scipy.sparse import csr_matrix
+from sklearn.neighbors import NearestNeighbors
+from fuzzywuzzy import process
+from collections import Counter
+
+
+ner_pipeline = pipeline('ner', model='dbmdz/bert-large-cased-finetuned-conll03-english')
+ml_ratings = pd.read_csv('../recommend_data/ratings.csv', usecols=['userId', 'movieId', 'rating'])
+ml_matrix = ml_ratings.pivot(index='movieId', columns='userId', values='rating').fillna(0)
+ml_csr = csr_matrix(ml_matrix.values)
+movie_df = pd.read_csv('../recommend_data/movies.csv', usecols=['movieId', 'title'])
+movie_dff = movie_df.drop(index=[0, 1]).reset_index(drop=True)
+knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=17)
+knn.fit(ml_csr[2:, :])
+
+
+def search(entity):
+    matches = movie_df.loc[movie_df['title'] == entity, 'movieId']
+
+    if not matches.empty:
+        movie_id = matches.iloc[0]
+    else:
+        best_match, score, idx = process.extractOne(entity, movie_df['title'])
+        if score >= 80:
+            movie_id = movie_df.loc[idx, 'movieId']
+            print(
+                f"Found close match: '{entity}' might be similar to '{best_match}' with a score of {score}. Movie ID: {movie_id}")
+        else:
+            movie_id=-1
+
+    return movie_id
+
+
+def recommend_question(question):
+    entities_q = ner_pipeline(question, aggregation_strategy="simple")
+    entity = ""
+    indices_all=[]
+    for e in entities_q:
+         entity = e['word']
+         id = search(entity)
+         if id==-1:
+             pass
+         else:
+             distances, indices = knn.kneighbors(ml_csr[id], n_neighbors=40)
+             indices_all.append(indices)
+
+    indices_all = np.hstack(indices_all).flatten()
+    counter = Counter(indices_all)
+    for i, count in counter.most_common(3):
+        print(movie_dff['title'][i])
+        print(f"{i}: {count} times")
+
+
+
