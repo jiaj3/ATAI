@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import pandas as pd
 from transformers import pipeline
@@ -5,8 +7,7 @@ from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 from fuzzywuzzy import process
 from collections import Counter
-from ner_utils import getrecommend
-
+from ner_utils import getrecommend, get_genre_list
 
 ner_pipeline = pipeline('ner', model='dbmdz/bert-large-cased-finetuned-conll03-english')
 ml_ratings = pd.read_csv('../recommend_data/ratings.csv', usecols=['userId', 'movieId', 'rating'])
@@ -28,57 +29,57 @@ def search(entity):
         if score >= 80:
             movie_id = movie_df.loc[idx, 'movieId']
         else:
-            movie_id=-1
+            movie_id = -1
 
     return movie_id
 
 
 def helper(question):
-    results=[]
+    results = []
     entities_q = ner_pipeline(question, aggregation_strategy="simple")
-    indices_all=[]
+    indices_all = []
     for e in entities_q:
-         entity = e['word']
-         id = search(entity)
-         if id==-1:
-             pass
-         else:
-             distances, indices = knn.kneighbors(ml_csr[id], n_neighbors=300)
-             indices_all.append(indices)
+        entity = e['word']
+        id = search(entity)
+        if id == -1:
+            pass
+        else:
+            distances, indices = knn.kneighbors(ml_csr[id], n_neighbors=300)
+            indices_all.append(indices)
 
     indices_all = np.hstack(indices_all).flatten()
     counter = Counter(indices_all)
-    for i, count in counter.most_common(30):
+    for i, count in counter.most_common(50):
         results.append(movie_dff['title'][i])
     return results
 
 
 def recommend_question(question):
     entities_q = ner_pipeline(question, aggregation_strategy="simple")
-    genre_list=[]
+    genre_list = []
     for e in entities_q:
         entity = e['word']
-        genre = getrecommend(entity)
-        genre_list.append(genre)
-        print(genre)
+        genre = get_genre_list(entity)
+        genre_list.extend(genre)
 
     counter = Counter(genre_list)
-    finalgenre =[]
-    for i, count in counter.most_common(1):
-        finalgenre = i
-
+    finalgenre = [item for item, count in counter.items() if count > 1]
 
     candidates = helper(question)
     winners = []
     for c in candidates:
-        if len(winners)>2:
+        if len(winners) > 2:
             break
-        genre = getrecommend(c)
-        if finalgenre == genre:
+        genre = get_genre_list(c)
+        if set(genre).intersection(set(finalgenre)):
             winners.append(c)
 
-    return winners
+    if winners:
+        winners.append(candidates[0])
 
+    sentences = [
+        "You probably would also like " + ','.join(winners) + ".",
+        "Why not also watch " + ','.join(winners) + "?"
+    ]
 
-
-
+    return random.choice(sentences)

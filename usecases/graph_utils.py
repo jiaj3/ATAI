@@ -15,6 +15,7 @@ SCHEMA = Namespace('http://schema.org/')
 DDIS = Namespace('http://ddis.ch/atai/')
 RDFS = rdflib.namespace.RDFS
 
+
 entities = set(graph.subjects()) | {s for s in graph.objects() if isinstance(s, URIRef)}
 predicates = set(graph.predicates())
 literals = {s for s in graph.objects() if isinstance(s, Literal)}

@@ -51,10 +51,56 @@ def check_embedding_question(node, predicate, result):
     for rank, idx in enumerate(most_likely[:6]):
         if result.strip() == ent2lbl[id2ent[idx]].strip():
             in_top_six = True
-    if in_top_six == True:
+    if in_top_six:
         return result
     else:
         return ent2lbl[id2ent[most_likely[0]]]
+
+
+def get_genre_list(node, predicate, result):
+    entity_id = node.split('/')[-1]
+    relation_id = predicate.split('/')[-1]
+
+    try:
+        head = entity_emb[ent2id[WD[entity_id]]]
+        pred = relation_emb[rel2id[WDT[relation_id]]]
+    except KeyError as e:
+        return result
+
+    # add vectors according to TransE scoring function.
+    lhs = head + pred
+    # compute distance to *any* entity
+    dist = pairwise_distances(lhs.reshape(1, -1), entity_emb).reshape(-1)
+    # find most plausible entities
+    most_likely = dist.argsort()
+    # compute ranks of entities
+    ranks = dist.argsort().argsort()
+    in_top_six = False
+    answer = []
+    for rank, idx in enumerate(most_likely[:2]):
+        answer.append(ent2lbl[id2ent[idx]])
+
+    return answer
+
+
+# def find_similar_movies(entity):
+#     entity_id = entity.split('/')[-1]
+#     # which entities are similar to given entity
+#     ent = ent2id[WD[entity_id]]
+#     # we compare the embedding of the query entity to all other entity embeddings
+#     dist = pairwise_distances(entity_emb[ent].reshape(1, -1), entity_emb).reshape(-1)
+#     # order by plausibility
+#     most_likely = dist.argsort()
+#
+#     df = pd.DataFrame([
+#         (
+#             id2ent[idx][len(WD):],  # qid
+#             dist[idx],  # score
+#         )
+#         for rank, idx in enumerate(most_likely[1:300])],
+#         columns=('entity', 'score'))
+#
+#     return df
 
 
 """def recommend_embedding(genre, time):
