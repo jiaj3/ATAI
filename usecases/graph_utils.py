@@ -1,8 +1,19 @@
+import json
 import locale
 import rdflib
 from rdflib.namespace import Namespace
 from rdflib.term import URIRef, Literal
 import re
+
+
+
+def load_json_file(file_path):
+    with open(file_path, 'r') as json_file:
+        data = json.load(json_file)
+    return data
+
+json_file_path = '../images.json'
+json_data = load_json_file(json_file_path)
 
 
 _ = locale.setlocale(locale.LC_ALL, '')
