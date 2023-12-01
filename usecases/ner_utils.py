@@ -1,40 +1,13 @@
-import locale
-import re
 import editdistance
 from transformers import pipeline
+
 import graph_utils
 import embeddings_utils
-import spacy
+import question_utils
 
-_ = locale.setlocale(locale.LC_ALL, '')
 
 ner_pipeline = pipeline('ner', model='dbmdz/bert-large-cased-finetuned-conll03-english')
 
-nlp = spacy.load("../en_core_web_sm/en_core_web_sm-3.7.0")
-
-
-def extract_relation(question):
-    relations = []
-    doc = nlp(question)
-    relation_mark = []
-    if doc[0].dep_ == 'advmod':
-        relation_mark = 1
-    elif doc[0].dep_ == 'nsubj':
-        relation_mark = 2
-    if relation_mark == 1:
-        return 'publication date'
-    elif relation_mark == 2:
-        return doc[0].head.text
-    else:
-        for token in doc:
-            if token.dep_ == "ROOT":
-                for child in token.children:
-                    temp = child.text
-                    for token_temp in reversed(list(doc)):
-                        if token_temp.dep_ == 'compound' and token_temp.head.text == child.text:
-                            temp = token_temp.text + ' ' + temp
-                    relations.append(temp)
-        return relations[1] if relations[1] else None
 
 
 def closed_question(question):
@@ -54,7 +27,7 @@ def closed_question(question):
         for e in entities_q:
             entity += e['word'] + ' '
     entity = entity.strip()
-    relation = extract_relation(question)
+    relation = question_utils.extract_relation(question)
     print(f"Entity: {entity}, Relation: {relation}")
 
     # find the entity and relation in the graph
@@ -107,10 +80,6 @@ def closed_question(question):
 def getrecommend(entity):
     # extract entity and relation from the question, entity using NER, and relation use
 
-    relation1 = "genre"
-    relation2 = "publication date"
-
-    # find the entity and relation in the graph
     tmp = 9999
     match_node = ""
     for key, value in graph_utils.nodes.items():

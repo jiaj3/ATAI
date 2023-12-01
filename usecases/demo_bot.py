@@ -47,8 +47,6 @@ class Agent:
                         error_message = f"Sorry, there are some errors occur :/"
                         room.post_messages(error_message)
 
-                    # Send a message to the corresponding chat room using the post_messages method of the room object.
-                    room.post_messages(f"Received your message: '{message.message}' ")
                     # Mark the message as processed, so it will be filtered out when retrieving new messages.
                     room.mark_as_processed(message)
 
@@ -62,7 +60,6 @@ class Agent:
 
                     # Implement your agent here #
 
-                    room.post_messages(f"Received your reaction: '{reaction.type}' ")
                     room.mark_as_processed(reaction)
 
             time.sleep(listen_freq)
