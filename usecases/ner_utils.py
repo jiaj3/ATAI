@@ -1,3 +1,5 @@
+import re
+
 import editdistance
 import nltk
 from transformers import pipeline
@@ -85,8 +87,10 @@ def extract_entity_relation(question):
                 relation = word
                 break
 
-    if 'release' in sentence.split() or 'released' in sentence.split():
+    if re.search('release', sentence):
         relation = "publication date"
+    elif re.search('wrote', sentence):
+        relation = 'screenwriter'
 
     print(f"Entity: {entity}, Relation: {relation}")
     # find the entity and relation in the graph

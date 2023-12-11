@@ -13,7 +13,9 @@ nlp = spacy.load("../en_core_web_sm/en_core_web_sm-3.7.0")
 
 
 def question(q):
-    if "recommend" in q.lower():
+    if "watch" in q.lower():
+        return recommend_question(q)
+    elif "recommend" in q.lower():
         return recommend_question(q)
     elif "look" in q.lower() and "like" in q.lower():
         return multimedia_question(q)
